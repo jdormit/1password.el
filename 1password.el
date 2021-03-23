@@ -107,14 +107,14 @@ see https://support.1password.com/command-line-getting-started/#get-started-with
   (interactive (list (1password--read-name) t))
   (when (string= "" name)
     (user-error "Name can't be emtpy"))
-  (catch 'getpass
-    (dolist (field (let-alist (1password-get-item name) .details.fields))
-      (let-alist field
-        (when (string= .name "password")
-          (when copy
-            (kill-new .value)
-            (message "Password of %s copied: %s" name .value))
-          (throw 'getpass .value))))))
+  (let-alist (1password-get-item name)
+    (let-alist .details
+      (if (not .password)
+          (user-error "No password for %s found" name)
+        (when copy
+          (kill-new .password)
+          (message "Copied password for %s to kill ring" name))
+        .password))))
 
 (provide '1password)
 ;;; 1password.el ends here
